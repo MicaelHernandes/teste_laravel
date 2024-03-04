@@ -4,6 +4,8 @@ namespace App\repositories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 interface UserRepositoryInterface
 {
@@ -22,32 +24,75 @@ class UserRepository implements UserRepositoryInterface
     }
     public function find(int $id): User
     {
-        return $this->model->find($id);
+        DB::beginTransaction();
+        try {
+            DB::commit();
+            return $this->model->find($id);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw new \Exception($th);
+        }
     }
 
     public function findByEmail(string $email): User
     {
-        return $this->model->where('email', $email)->first();
+        DB::beginTransaction();
+        try {
+            DB::commit();
+            return $this->model->where('email', $email)->first();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw new \Exception($th);
+        }
     }
 
     public function create(array $data): User
     {
-        return $this->model->create($data);
+        DB::beginTransaction();
+        try {
+            $user =  $this->model->create($data);
+            DB::commit();
+            return $user;
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw new \RuntimeException($e);
+        }
     }
 
     public function update(User $user, array $data): User
     {
-        $user->update($data);
-        return $user;
+        DB::beginTransaction();
+        try {
+            $user->update($data);
+            DB::commit();
+            return $user;
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw new RuntimeException($e);
+        }
     }
 
     public function delete(User $user): void
     {
-        $user->delete();
+        DB::beginTransaction();
+        try {
+            $user->delete();
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw new \RuntimeException($e);
+        }
     }
 
     public function all(): array
     {
-        return $this->model->all();
+        DB::beginTransaction();
+        try {
+            DB::commit();
+            return (array) $this->model->all();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw new \Exception($e);
+        }
     }
 }
