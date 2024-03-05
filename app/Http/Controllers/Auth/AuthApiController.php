@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UserAuthRequest;
 use App\Http\Requests\UserStoreRequest;
 use App\services\UserService;
 use App\services\UserServiceInterface;
-use Illuminate\Http\Request;
 
 class AuthApiController extends Controller
 {
@@ -24,6 +24,21 @@ class AuthApiController extends Controller
                 "message" => "User created successfully",
                 'user' => $user
             ], 201);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function login(UserAuthRequest $request)
+    {
+        try {
+            $token = $this->services->loginUser($request->toArray());
+            return response()->json([
+                "message" => "User logged in successfully",
+                'token' => $token
+            ], 200);
         } catch (\Throwable $e) {
             return response()->json([
                 'message' => $e->getMessage()
