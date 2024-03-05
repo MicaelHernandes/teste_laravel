@@ -45,4 +45,12 @@ class AuthApiController extends Controller
             ], 400);
         }
     }
+
+    public function logout()
+    {
+        auth()->user()->token()->revoke();
+        return response()->json([
+            'message' => 'Logged out successfully'
+        ]);
+    }
 }
