@@ -19,8 +19,10 @@ interface UserRepositoryInterface
 
 class UserRepository implements UserRepositoryInterface
 {
-    public function __construct(private Model $model)
+    private Model $model;
+    public function __construct(private User $user)
     {
+        $this->model = $user;
     }
     public function find(int $id): User
     {
