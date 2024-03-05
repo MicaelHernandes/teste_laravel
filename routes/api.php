@@ -20,6 +20,6 @@ Route::middleware('guest')->prefix('auth')->group(function () {
     Route::post('/login', [AuthApiController::class, 'login']);
 });
 
-Route::middleware('auth-api')->group(function () {
+Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthApiController::class, 'logout']);
 });
