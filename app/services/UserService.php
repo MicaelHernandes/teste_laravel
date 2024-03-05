@@ -3,9 +3,8 @@
 namespace App\services;
 
 use App\Models\User;
+use App\repositories\UserRepository;
 use App\repositories\UserRepositoryInterface;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 interface UserServiceInterface
 {
@@ -16,26 +15,19 @@ interface UserServiceInterface
 
 class UserService implements UserServiceInterface
 {
-
-    public function __construct(private UserRepositoryInterface $repo)
+    private UserRepositoryInterface $repo;
+    public function __construct(private UserRepository $repository)
     {
+        $this->repo = $repository;
     }
 
     public function loginUser(array $data): array
     {
         try {
-            $user = $this->repo->findByEmail($data['email']);
-
-            if (!$user || !Hash::check($data['password'], $user->password)) {
-                throw ValidationException::withMessages([
-                    'email' => ['The provided credentials are incorrect.'],
-                ]);
+            if (auth()->attempt($data["email"], $data["password"])) {
+                $token = auth()->user()->createToken('api_token', now()->addHours(24));
+                return (array) $token->plainTextToken;
             }
-
-            return [
-                'user' => $user,
-                'token' => $user->createToken('authToken')->accessToken,
-            ];
         } catch (\Throwable $e) {
             throw new \Exception($e);
         }
