@@ -9,7 +9,7 @@ use App\repositories\UserRepositoryInterface;
 interface UserServiceInterface
 {
     public function registerUser(array $data): User;
-    public function loginUser(array $data): array;
+    public function loginUser(array $data): string;
     public function getUserById(int $id): User;
 }
 
@@ -21,17 +21,18 @@ class UserService implements UserServiceInterface
         $this->repo = $repository;
     }
 
-    public function loginUser(array $data): array
+    public function loginUser(array $data): string
     {
         try {
-            if (auth()->attempt($data["email"], $data["password"])) {
-                $token = auth()->user()->createToken('api_token', now()->addHours(24));
-                return (array) $token->plainTextToken;
+            if (auth()->attempt(['email' => $data["email"], 'password' => $data["password"]])) {
+                $token = auth()->user()->createToken('api_token')->accessToken;
+                return $token;
             }
         } catch (\Throwable $e) {
-            throw new \Exception($e);
+            throw new \Exception("Erro ao tentar autenticar o usuário: " . $e->getMessage());
         }
     }
+
 
     public function registerUser(array $data): User
     {
